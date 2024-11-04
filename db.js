@@ -3,9 +3,9 @@ const sql = require('mssql');
 
 // Configure your database connection here
 const config = {
-    user: 'sa',
-    password: 'prime_123$',
-    server: '136.185.14.8',
+    user: 'username',
+    password: 'password',
+    server: 'servername',
     database: 'schoolTestDB',
     options: {
       encrypt: true,
