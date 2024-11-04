@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student CRUD Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        input {
+            margin: 5px 0;
+            padding: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .edit-button, .delete-button {
+            cursor: pointer;
+            padding: 5px 10px;
+            border: none;
+            color: white;
+            border-radius: 5px;
+        }
+        .edit-button {
+            background-color: #007bff;
+        }
+        .edit-button:hover {
+            background-color: #0056b3;
+        }
+        .delete-button {
+            background-color: #dc3545;
+        }
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Student CRUD Application</h1>
+        <form id="student-form">
+            <input type="hidden" id="student-id">
+            <input type="text" id="student-name" placeholder="Enter student name" required>
+            <input type="text" id="student-email" placeholder="Enter student email" required>
+            <input type="text" id="student-grade" placeholder="Enter student grade" required>
+            <input type="text" id="student-standard" placeholder="Enter student standard" required>
+            <button type="submit">Add Student</button>
+        </form>
+        <table id="student-table">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Grade</th>
+                    <th>Standard</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="student-list"></tbody>
+        </table>
+    </div>
+    <script>
+        const form = document.getElementById('student-form');
+        const studentList = document.getElementById('student-list');
+
+        const API_URL = 'http://localhost:3000/api/students';
+
+        // Fetch all students
+        const fetchStudents = async () => {
+            const response = await fetch(`${API_URL}/readstudents`);
+            const students = await response.json();
+            studentList.innerHTML = students.map((student, index) => `
+                <tr data-id="${student.id}">
+                    <td>${index + 1}</td>
+                    <td>${student.name}</td>
+                    <td>${student.email}</td>
+                    <td>${student.grade}</td>
+                    <td>${student.standard}</td>
+                    <td class="action-buttons">
+                        <button class="edit-button" onclick="editStudent(${student.id})">Edit</button>
+                        <button class="delete-button" onclick="deleteStudent(${student.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        };
+
+        // Add or Update a student
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('student-id').value;
+            const name = document.getElementById('student-name').value;
+            const email = document.getElementById('student-email').value;
+            const grade = document.getElementById('student-grade').value;
+            const standard = document.getElementById('student-standard').value;
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/update/${id}` : `${API_URL}/createstudent`;
+
+            await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email, grade, standard }),
+            });
+
+            form.reset();
+            fetchStudents();
+
+            // Reset the button text and color back to "Add Student"
+            const submitButton = document.querySelector('button[type="submit"]');
+            submitButton.textContent = "Add Student";
+            submitButton.style.backgroundColor = "#28a745"; // Original green color
+        });
+
+        // Edit a student
+        const editStudent = (id) => {
+            const studentItem = studentList.querySelector(`tr[data-id="${id}"]`);
+            const name = studentItem.children[1].textContent;
+            const email = studentItem.children[2].textContent;
+            const grade = studentItem.children[3].textContent;
+            const standard = studentItem.children[4].textContent;
+
+            document.getElementById('student-id').value = id;
+            document.getElementById('student-name').value = name;
+            document.getElementById('student-email').value = email;
+            document.getElementById('student-grade').value = grade;
+            document.getElementById('student-standard').value = standard;
+
+            // Change the button text and background color
+            const submitButton = document.querySelector('button[type="submit"]');
+            submitButton.textContent = "Update Student";
+            submitButton.style.backgroundColor = "#007bff"; // Blue background
+        };
+
+        // Delete a student
+        const deleteStudent = async (id) => {
+            await fetch(`${API_URL}/delete/${id}`, {
+                method: 'DELETE',
+            });
+            fetchStudents();
+        };
+
+        // Initial fetch
+        fetchStudents();
+    </script>
+</body>
+</html>
